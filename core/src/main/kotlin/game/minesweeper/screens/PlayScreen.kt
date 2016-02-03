@@ -32,8 +32,8 @@ enum class Mine {
 
 enum class Status {
     UNSOLVED,
-    SOLVED,
-    TAGGED_CLEAR,
+    CLEARED,
+    TAGGED_FLAG,
     TAGGED_QUESTION
 }
 
@@ -54,12 +54,23 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
     private var mapWidth = 10    // should not exceed 26
     private var mapHeight = 10    // should not exceed 16
     private var mapSize = mapWidth * mapHeight
-    private var mineNumber: Int = mapSize / 10
+    private var totalMineNumber: Int = mapSize / 10
 
     private lateinit var mineMap: Array<Mine>
     private lateinit var mineMapStatus: Array<Status>
 
-    private lateinit var blockSprite: Sprite
+    private lateinit var spriteBlock: Sprite
+    private lateinit var spriteClearBlock: Sprite
+
+    private lateinit var spriteNum1: Sprite
+    private lateinit var spriteNum2: Sprite
+    private lateinit var spriteNum3: Sprite
+    private lateinit var spriteNum4: Sprite
+    private lateinit var spriteNum5: Sprite
+    private lateinit var spriteNum6: Sprite
+    private lateinit var spriteNum7: Sprite
+    private lateinit var spriteNum8: Sprite
+    private lateinit var spriteFlag: Sprite
 
 
     override fun show() {
@@ -78,8 +89,33 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
 
         setupMineMap()
 
-        blockSprite = Sprite(assetManager.get("img/actors.pack", TextureAtlas::class.java).findRegion("Block"))
-        blockSprite.setBounds(0f, 0f, BLOCK_SIZE, BLOCK_SIZE)
+        val textureAtlas = assetManager.get("img/actors.pack", TextureAtlas::class.java)
+        spriteBlock = Sprite(textureAtlas.findRegion("Block"))
+        spriteBlock.setBounds(0f, 0f, BLOCK_SIZE, BLOCK_SIZE)
+
+        spriteClearBlock = Sprite(textureAtlas.findRegion("ClearBlock"))
+        spriteClearBlock.setBounds(0f, 0f, BLOCK_SIZE, BLOCK_SIZE)
+
+        spriteNum1 = Sprite(textureAtlas.findRegion("Num1"))
+        spriteNum2 = Sprite(textureAtlas.findRegion("Num2"))
+        spriteNum3 = Sprite(textureAtlas.findRegion("Num3"))
+        spriteNum4 = Sprite(textureAtlas.findRegion("Num4"))
+        spriteNum5 = Sprite(textureAtlas.findRegion("Num5"))
+        spriteNum6 = Sprite(textureAtlas.findRegion("Num6"))
+        spriteNum7 = Sprite(textureAtlas.findRegion("Num7"))
+        spriteNum8 = Sprite(textureAtlas.findRegion("Num8"))
+        spriteFlag = Sprite(textureAtlas.findRegion("Flag"))
+
+        spriteNum1.setBounds(0f, 0f, BLOCK_SIZE, BLOCK_SIZE)
+        spriteNum2.setBounds(0f, 0f, BLOCK_SIZE, BLOCK_SIZE)
+        spriteNum3.setBounds(0f, 0f, BLOCK_SIZE, BLOCK_SIZE)
+        spriteNum4.setBounds(0f, 0f, BLOCK_SIZE, BLOCK_SIZE)
+        spriteNum5.setBounds(0f, 0f, BLOCK_SIZE, BLOCK_SIZE)
+        spriteNum6.setBounds(0f, 0f, BLOCK_SIZE, BLOCK_SIZE)
+        spriteNum7.setBounds(0f, 0f, BLOCK_SIZE, BLOCK_SIZE)
+        spriteNum8.setBounds(0f, 0f, BLOCK_SIZE, BLOCK_SIZE)
+        spriteFlag.setBounds(0f, 0f, BLOCK_SIZE, BLOCK_SIZE)
+
     }
 
     fun setupMineMap() {
@@ -87,7 +123,7 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
         mineMap = Array(mapSize, {i -> Mine.EMPTY })
 
         val random = Random()
-        for (i in 0..mineNumber - 1) {
+        for (i in 0..totalMineNumber - 1) {
             var pos = random.nextInt(mapSize)
             while (mineMap[pos] == Mine.MINE) {
                 pos = random.nextInt(mapSize)
@@ -127,6 +163,7 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
                 }
             }
         }
+
     }
 
     fun printMap() {
@@ -178,9 +215,76 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
 
         for ((index, value) in mineMapStatus.withIndex()) {
             val x = WIDTH / 2f - (mapWidth / 2f - (index % mapWidth)) * BLOCK_SIZE
-            val y = (HEIGHT - 6f) / 2f - (mapHeight / 2f - 1 - (index / mapWidth - 1)) * BLOCK_SIZE
-            blockSprite.setPosition(x, y)
-            blockSprite.draw(batch)
+            val y = (HEIGHT - 6f) / 2f + (mapHeight / 2f - index / mapWidth - 1) * BLOCK_SIZE
+
+
+            if (value == Status.UNSOLVED) {
+                spriteBlock.setPosition(x, y)
+                spriteBlock.draw(batch)
+            }
+            else if (value == Status.CLEARED) {
+                spriteClearBlock.setPosition(x, y)
+                spriteClearBlock.draw(batch)
+
+                when (mineMap[index]) {
+                    Mine.ONE -> {
+                        spriteNum1.setPosition(x, y)
+                        spriteNum1.draw(batch)
+                    }
+
+                    Mine.TWO -> {
+                        spriteNum2.setPosition(x, y)
+                        spriteNum2.draw(batch)
+                    }
+
+                    Mine.THREE -> {
+                        spriteNum3.setPosition(x, y)
+                        spriteNum3.draw(batch)
+                    }
+
+                    Mine.FOUR -> {
+                        spriteNum4.setPosition(x, y)
+                        spriteNum4.draw(batch)
+                    }
+
+                    Mine.FIVE -> {
+                        spriteNum5.setPosition(x, y)
+                        spriteNum5.draw(batch)
+                    }
+
+                    Mine.SIX -> {
+                        spriteNum6.setPosition(x, y)
+                        spriteNum6.draw(batch)
+                    }
+
+                    Mine.SEVEN -> {
+                        spriteNum7.setPosition(x, y)
+                        spriteNum7.draw(batch)
+                    }
+
+                    Mine.EIGHT -> {
+                        spriteNum8.setPosition(x, y)
+                        spriteNum8.draw(batch)
+                    }
+
+                    Mine.MINE -> {
+                        spriteFlag.setPosition(x, y)
+                        spriteFlag.draw(batch)
+                    }
+
+                    else -> {
+
+                    }
+
+                }
+            }
+            else if (value == Status.TAGGED_FLAG) {
+                // draw flag
+            }
+            else if (value == Status.TAGGED_QUESTION) {
+                // draw question mark
+            }
+
         }
         batch.end()
     }
@@ -221,27 +325,47 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
     override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
         val vec3 = Vector3(screenX.toFloat(), screenY.toFloat(), 0f)
         camera.unproject(vec3)
-        val mapCoord = translateWorldCoordToMapCoord(vec3.x, vec3.y)
+        val (coordX, coordY) = translateWorldCoordToMapCoord(vec3.x, vec3.y)
 
         when (button) {
             Input.Buttons.LEFT -> {
 
                 // clicked on mine map
-                if (mapCoord.x >=0 && mapCoord.y >= 0) {
-                    println("Left button pressed at (${mapCoord.x}, ${mapCoord.y})")
+                if (coordX >=0 && coordY >= 0) {
+                    when (mineMapStatus[coordY * mapWidth + coordX]) {
+                        Status.UNSOLVED -> {
+                            val mine = mineMap[coordY * mapWidth + coordX]
+
+                            if (mine == Mine.MINE) {
+                                // explode...
+                                println("explode!!!")
+                            }
+                            else {
+                                if (mine == Mine.EMPTY) {
+                                    checkSurroundingBlocks(coordX, coordY)
+                                }
+                                mineMapStatus[coordY * mapWidth + coordX] = Status.CLEARED
+                            }
+                        }
+                        else -> {}
+                    }
                 }
             }
 
             Input.Buttons.RIGHT -> {
 
                 // clicked on mine map
-                if (mapCoord.x >=0 && mapCoord.y >= 0) {
+                if (coordX >=0 && coordY >= 0) {
                     println("Right button pressed at (${vec3.x}, ${vec3.y})")
                 }
             }
         }
 
         return false
+    }
+
+    private fun checkSurroundingBlocks(x: Int, y: Int) {
+
     }
 
     override fun scrolled(amount: Int): Boolean {
