@@ -49,10 +49,11 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
 
     private val assetManager = AssetManager()
 
-    private var mapWidth = 10    // should not exceed 26
-    private var mapHeight = 10    // should not exceed 16
-    private var mapSize = mapWidth * mapHeight
-    private var totalMineNumber: Int = mapSize / 10
+    var mapWidth = 10    // should be between 1 and 26
+    var mapHeight = 10    // should be between 1 and 16
+    var mapSize = 0
+        get() = mapWidth * mapHeight
+    var totalMineNumber: Int = mapSize / 10 // should be between 1 and mapSize
 
     private lateinit var mineMap: Array<Mine>
     private lateinit var mineMapStatus: Array<Status>
@@ -60,6 +61,7 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
     private lateinit var spriteBlock: Sprite
     private lateinit var spriteClearBlock: Sprite
     private lateinit var spriteQuestion: Sprite
+    private lateinit var spriteMine: Sprite
 
     private lateinit var spriteNum1: Sprite
     private lateinit var spriteNum2: Sprite
@@ -92,6 +94,9 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
 
         spriteQuestion = Sprite(textureAtlas.findRegion("Question"))
         spriteQuestion.setBounds(0f, 0f, BLOCK_SIZE, BLOCK_SIZE)
+
+        spriteMine = Sprite(textureAtlas.findRegion("Mine"))
+        spriteMine.setBounds(0f, 0f, BLOCK_SIZE, BLOCK_SIZE)
 
         spriteNum1 = Sprite(textureAtlas.findRegion("Num1"))
         spriteNum2 = Sprite(textureAtlas.findRegion("Num2"))
@@ -296,8 +301,8 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
                     }
 
                     Mine.MINE -> {
-                        spriteFlag.setPosition(x, y)
-                        spriteFlag.draw(batch)
+                        spriteMine.setPosition(x, y)
+                        spriteMine.draw(batch)
                     }
 
                     else -> {
@@ -350,26 +355,28 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
         val vec3 = Vector3(screenX.toFloat(), screenY.toFloat(), 0f)
         camera.unproject(vec3)
         val (coordX, coordY) = translateWorldCoordToMapCoord(vec3.x, vec3.y)
+        val index = coordY * mapWidth + coordX
 
         when (button) {
             Input.Buttons.LEFT -> {
 
                 // clicked on mine map
                 if (coordX >=0 && coordY >= 0) {
-                    when (mineMapStatus[coordY * mapWidth + coordX]) {
+                    when (mineMapStatus[index]) {
                         Status.UNSOLVED -> {
-                            val mine = mineMap[coordY * mapWidth + coordX]
+                            val mine = mineMap[index]
 
                             if (mine == Mine.MINE) {
                                 // explode...
                                 println("explode!!!")
+                                mineMapStatus[index] = Status.CLEARED
                             }
                             else {
                                 if (mine == Mine.EMPTY) {
                                     checkSurroundingBlocks(coordX, coordY)
                                 }
                                 else {
-                                    mineMapStatus[coordY * mapWidth + coordX] = Status.CLEARED
+                                    mineMapStatus[index] = Status.CLEARED
                                 }
                             }
                         }
@@ -382,7 +389,7 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
 
                 // clicked on mine map
                 if (coordX >=0 && coordY >= 0) {
-                    val index = coordY * mapWidth + coordX
+
                     when (mineMapStatus[index]) {
                         Status.UNSOLVED -> {
                             mineMapStatus[index] = Status.TAGGED_FLAG
