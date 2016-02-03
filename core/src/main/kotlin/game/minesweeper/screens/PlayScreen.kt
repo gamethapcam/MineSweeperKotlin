@@ -344,7 +344,9 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
                                 if (mine == Mine.EMPTY) {
                                     checkSurroundingBlocks(coordX, coordY)
                                 }
-                                mineMapStatus[coordY * mapWidth + coordX] = Status.CLEARED
+                                else {
+                                    mineMapStatus[coordY * mapWidth + coordX] = Status.CLEARED
+                                }
                             }
                         }
                         else -> {}
@@ -365,7 +367,22 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
     }
 
     private fun checkSurroundingBlocks(x: Int, y: Int) {
+        if (x < 0 || x >= mapWidth || y < 0 || y >= mapHeight) {
+            return
+        }
 
+        val mine = mineMap[y * mapWidth + x]
+        val status = mineMapStatus[y * mapWidth + x]
+        if (status == Status.UNSOLVED) {
+            mineMapStatus[y * mapWidth + x] = Status.CLEARED
+            if (mine == Mine.EMPTY) {
+                for (i in 0..8) {
+                    if (i != 4) {
+                        checkSurroundingBlocks(x + (i % 3) - 1, y + (i / 3) - 1)
+                    }
+                }
+            }
+        }
     }
 
     override fun scrolled(amount: Int): Boolean {
