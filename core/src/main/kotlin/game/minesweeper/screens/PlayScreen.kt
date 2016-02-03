@@ -8,6 +8,7 @@ import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.BitmapFont
+import com.badlogic.gdx.graphics.g2d.Sprite
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.math.Vector2
@@ -36,23 +37,29 @@ enum class Status {
     TAGGED_QUESTION
 }
 
+data class MapCoord(val x: Int, val y: Int)
+
 class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
 
     val WIDTH = 40.0f
     val HEIGHT = 30.0f
 
-    internal lateinit var viewport: FitViewport
-    internal lateinit var camera: OrthographicCamera
+    val BLOCK_SIZE = 1.5f
 
-    internal val assetManager = AssetManager()
+    private lateinit var viewport: FitViewport
+    private lateinit var camera: OrthographicCamera
 
-    internal var mapWidth = 10
-    internal var mapHeight = 10
-    internal var mapSize = mapWidth * mapHeight
-    internal var mineNumber: Int = mapSize / 10
+    private val assetManager = AssetManager()
 
-    internal lateinit var mineMap: Array<Mine>
-    internal lateinit var mineMapStatus: Array<Status>
+    private var mapWidth = 10    // should not exceed 26
+    private var mapHeight = 10    // should not exceed 16
+    private var mapSize = mapWidth * mapHeight
+    private var mineNumber: Int = mapSize / 10
+
+    private lateinit var mineMap: Array<Mine>
+    private lateinit var mineMapStatus: Array<Status>
+
+    private lateinit var blockSprite: Sprite
 
 
     override fun show() {
@@ -70,6 +77,9 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
         Gdx.gl.glClearColor(0.6f, 0.6f, 0.8f, 1f)
 
         setupMineMap()
+
+        blockSprite = Sprite(assetManager.get("img/actors.pack", TextureAtlas::class.java).findRegion("Block"))
+        blockSprite.setBounds(0f, 0f, BLOCK_SIZE, BLOCK_SIZE)
     }
 
     fun setupMineMap() {
@@ -165,6 +175,13 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
         batch.projectionMatrix = camera.combined
 
         batch.begin()
+
+        for ((index, value) in mineMapStatus.withIndex()) {
+            val x = WIDTH / 2f - (mapWidth / 2f - (index % mapWidth)) * BLOCK_SIZE
+            val y = (HEIGHT - 6f) / 2f - (mapHeight / 2f - 1 - (index / mapWidth - 1)) * BLOCK_SIZE
+            blockSprite.setPosition(x, y)
+            blockSprite.draw(batch)
+        }
         batch.end()
     }
 
@@ -174,6 +191,18 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
     override fun dispose() {
         assetManager.dispose()
 
+    }
+
+    private fun translateWorldCoordToMapCoord(posX: Float, posY: Float): MapCoord {
+        val left = WIDTH / 2f - mapWidth / 2f * BLOCK_SIZE
+        val top = (HEIGHT - 6f) / 2f - (mapHeight / 2f) * BLOCK_SIZE
+
+        val x = (posX - left) / BLOCK_SIZE
+        val y = mapHeight + (top - posY) / BLOCK_SIZE
+
+        val coordX = if (x >= 0 && x <= mapWidth) x.toInt() else -1
+        val coordY = if (y >= 0 && y <= mapHeight) y.toInt() else -1
+        return MapCoord(coordX, coordY)
     }
 
 
@@ -192,9 +221,24 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
     override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
         val vec3 = Vector3(screenX.toFloat(), screenY.toFloat(), 0f)
         camera.unproject(vec3)
+        val mapCoord = translateWorldCoordToMapCoord(vec3.x, vec3.y)
+
         when (button) {
-            Input.Buttons.LEFT -> println("Left button pressed at (${vec3.x}, ${vec3.y})")
-            Input.Buttons.RIGHT -> println("Right button pressed at (${vec3.x}, ${vec3.y})")
+            Input.Buttons.LEFT -> {
+
+                // clicked on mine map
+                if (mapCoord.x >=0 && mapCoord.y >= 0) {
+                    println("Left button pressed at (${mapCoord.x}, ${mapCoord.y})")
+                }
+            }
+
+            Input.Buttons.RIGHT -> {
+
+                // clicked on mine map
+                if (mapCoord.x >=0 && mapCoord.y >= 0) {
+                    println("Right button pressed at (${vec3.x}, ${vec3.y})")
+                }
+            }
         }
 
         return false
