@@ -61,6 +61,7 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
 
     private lateinit var spriteBlock: Sprite
     private lateinit var spriteClearBlock: Sprite
+    private lateinit var spriteQuestion: Sprite
 
     private lateinit var spriteNum1: Sprite
     private lateinit var spriteNum2: Sprite
@@ -85,7 +86,7 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
 
         Gdx.input.inputProcessor = this
 
-        Gdx.gl.glClearColor(0.6f, 0.6f, 0.8f, 1f)
+        Gdx.gl.glClearColor(0.7f, 0.7f, 0.8f, 1f)
 
         setupMineMap()
 
@@ -95,6 +96,9 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
 
         spriteClearBlock = Sprite(textureAtlas.findRegion("ClearBlock"))
         spriteClearBlock.setBounds(0f, 0f, BLOCK_SIZE, BLOCK_SIZE)
+
+        spriteQuestion = Sprite(textureAtlas.findRegion("Question"))
+        spriteQuestion.setBounds(0f, 0f, BLOCK_SIZE, BLOCK_SIZE)
 
         spriteNum1 = Sprite(textureAtlas.findRegion("Num1"))
         spriteNum2 = Sprite(textureAtlas.findRegion("Num2"))
@@ -222,6 +226,18 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
                 spriteBlock.setPosition(x, y)
                 spriteBlock.draw(batch)
             }
+            else if (value == Status.TAGGED_FLAG) {
+                spriteBlock.setPosition(x, y)
+                spriteBlock.draw(batch)
+                spriteFlag.setPosition(x, y)
+                spriteFlag.draw(batch)
+            }
+            else if (value == Status.TAGGED_QUESTION) {
+                spriteBlock.setPosition(x, y)
+                spriteBlock.draw(batch)
+                spriteQuestion.setPosition(x, y)
+                spriteQuestion.draw(batch)
+            }
             else if (value == Status.CLEARED) {
                 spriteClearBlock.setPosition(x, y)
                 spriteClearBlock.draw(batch)
@@ -277,12 +293,6 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
                     }
 
                 }
-            }
-            else if (value == Status.TAGGED_FLAG) {
-                // draw flag
-            }
-            else if (value == Status.TAGGED_QUESTION) {
-                // draw question mark
             }
 
         }
@@ -358,7 +368,22 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
 
                 // clicked on mine map
                 if (coordX >=0 && coordY >= 0) {
-                    println("Right button pressed at (${vec3.x}, ${vec3.y})")
+                    val index = coordY * mapWidth + coordX
+                    when (mineMapStatus[index]) {
+                        Status.UNSOLVED -> {
+                            mineMapStatus[index] = Status.TAGGED_FLAG
+                        }
+
+                        Status.TAGGED_FLAG -> {
+                            mineMapStatus[index] = Status.TAGGED_QUESTION
+                        }
+
+                        Status.TAGGED_QUESTION -> {
+                            mineMapStatus[index] = Status.UNSOLVED
+                        }
+                        else -> {}
+                    }
+
                 }
             }
         }
