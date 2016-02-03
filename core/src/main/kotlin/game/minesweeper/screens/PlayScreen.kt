@@ -1,9 +1,6 @@
 package game.minesweeper.screens
 
-import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.Input
-import com.badlogic.gdx.InputProcessor
-import com.badlogic.gdx.Screen
+import com.badlogic.gdx.*
 import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
@@ -14,6 +11,7 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.utils.viewport.FitViewport
+import game.minesweeper.ui.Gui
 import java.util.*
 
 
@@ -73,6 +71,7 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
     private lateinit var spriteNum8: Sprite
     private lateinit var spriteFlag: Sprite
 
+    private lateinit var gui: Gui
 
     override fun show() {
         assetManager.load("fonts/Ubuntu32.fnt", BitmapFont::class.java)
@@ -83,12 +82,6 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
         viewport = FitViewport(WIDTH, HEIGHT, camera)
 
         camera.translate(Vector2(WIDTH / 2f, HEIGHT / 2f))
-
-        Gdx.input.inputProcessor = this
-
-        Gdx.gl.glClearColor(0.7f, 0.7f, 0.8f, 1f)
-
-        setupMineMap()
 
         val textureAtlas = assetManager.get("img/actors.pack", TextureAtlas::class.java)
         spriteBlock = Sprite(textureAtlas.findRegion("Block"))
@@ -120,6 +113,17 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
         spriteNum8.setBounds(0f, 0f, BLOCK_SIZE, BLOCK_SIZE)
         spriteFlag.setBounds(0f, 0f, BLOCK_SIZE, BLOCK_SIZE)
 
+        gui = Gui(this)
+
+        val inputMultiplexer = InputMultiplexer()
+        inputMultiplexer.addProcessor(gui.stage)
+        inputMultiplexer.addProcessor(this)
+
+        Gdx.input.inputProcessor = inputMultiplexer
+
+        Gdx.gl.glClearColor(0.7f, 0.7f, 0.8f, 1f)
+
+        setupMineMap()
     }
 
     fun setupMineMap() {
@@ -170,7 +174,11 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
 
     }
 
+    /**
+     * print map in console for debugging use
+     */
     fun printMap() {
+
         var count = 0
 
         mineMap.forEach {
@@ -194,6 +202,10 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
         }
     }
 
+    fun restart() {
+        setupMineMap()
+    }
+
     override fun pause() {
     }
 
@@ -205,7 +217,7 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
     }
 
     fun update(delta: Float) {
-
+        gui.update(delta)
     }
 
     override fun render(delta: Float) {
@@ -297,6 +309,8 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
 
         }
         batch.end()
+
+        gui.draw()
     }
 
     override fun resume() {
@@ -304,7 +318,7 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
 
     override fun dispose() {
         assetManager.dispose()
-
+        gui.dispose()
     }
 
     private fun translateWorldCoordToMapCoord(posX: Float, posY: Float): MapCoord {
