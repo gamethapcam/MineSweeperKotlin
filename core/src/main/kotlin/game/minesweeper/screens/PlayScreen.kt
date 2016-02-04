@@ -49,8 +49,13 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
 
     private val assetManager = AssetManager()
 
-    var mapWidth = 10    // should be between 1 and 26
-    var mapHeight = 10    // should be between 1 and 16
+    val MIN_MAP_WIDTH = 1
+    val MAX_MAP_WIDTH = 26
+    val MIN_MAP_HEIGHT = 1
+    val MAX_MAP_HEIGHT = 16
+
+    var mapWidth = 10    // should be between MIN_MAP_WIDTH and MAX_MAP_WIDTH
+    var mapHeight = 10    // should be between MIN_MAP_HEIGHT and MAX_MAP_HEIGHT
     var mapSize = 0
         get() = mapWidth * mapHeight
     var totalMineNumber: Int = mapSize / 10 // should be between 1 and mapSize
