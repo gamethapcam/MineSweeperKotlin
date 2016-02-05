@@ -2,6 +2,7 @@ package game.minesweeper.screens
 
 import com.badlogic.gdx.*
 import com.badlogic.gdx.assets.AssetManager
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.BitmapFont
@@ -10,6 +11,8 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.math.Vector3
+import com.badlogic.gdx.scenes.scene2d.Stage
+import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.utils.viewport.FitViewport
 import game.minesweeper.ui.Gui
 import java.util.*
@@ -46,6 +49,8 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
 
     private lateinit var viewport: FitViewport
     private lateinit var camera: OrthographicCamera
+    private lateinit var stage: Stage
+    private lateinit var mineClearedLabel: Label
 
     private val assetManager = AssetManager()
 
@@ -56,9 +61,15 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
 
     var mapWidth = 10    // should be between MIN_MAP_WIDTH and MAX_MAP_WIDTH
     var mapHeight = 10    // should be between MIN_MAP_HEIGHT and MAX_MAP_HEIGHT
-    var mapSize = 0
+    val mapSize: Int
         get() = mapWidth * mapHeight
     var totalMineNumber: Int = mapSize / 10 // should be between 1 and mapSize
+
+    var gameOver = false
+    var mineCleared = false
+    var flags = totalMineNumber
+    var questions = 0
+    var unsolved = mapSize
 
     private lateinit var mineMap: Array<Mine>
     private lateinit var mineMapStatus: Array<Status>
@@ -89,6 +100,15 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
         viewport = FitViewport(WIDTH, HEIGHT, camera)
 
         camera.translate(Vector2(WIDTH / 2f, HEIGHT / 2f))
+
+        val ubuntu32Font = assetManager.get("fonts/Ubuntu32.fnt", BitmapFont::class.java)
+        val labelStyle = Label.LabelStyle(ubuntu32Font, Color.WHITE)
+        mineClearedLabel = Label("Cleared!", labelStyle)
+        mineClearedLabel.setPosition((Gdx.graphics.width - mineClearedLabel.width) / 2f, (Gdx.graphics.height - mineClearedLabel.height) / 2f)
+        mineClearedLabel.isVisible = mineCleared
+        stage = Stage()
+        stage.addActor(mineClearedLabel)
+
 
         val textureAtlas = assetManager.get("img/actors.pack", TextureAtlas::class.java)
         spriteBlock = Sprite(textureAtlas.findRegion("Block"))
@@ -214,6 +234,10 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
 
     fun restart() {
         setupMineMap()
+        flags = totalMineNumber
+        unsolved = mapSize
+        gameOver = false
+        mineCleared = false
     }
 
     override fun pause() {
@@ -320,6 +344,9 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
         }
         batch.end()
 
+        mineClearedLabel.isVisible = mineCleared
+        stage.draw()
+
         gui.draw()
     }
 
@@ -329,6 +356,15 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
     override fun dispose() {
         assetManager.dispose()
         gui.dispose()
+        stage.dispose()
+    }
+
+    private fun checkMineCleared() {
+
+        if (questions == 0 && (flags == 0 || (unsolved <= 1))) {
+            mineCleared = true
+        }
+        gameOver = mineCleared
     }
 
     private fun translateWorldCoordToMapCoord(posX: Float, posY: Float): MapCoord {
@@ -344,7 +380,7 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
     }
 
 
-    override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
+    override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
         return false
     }
 
@@ -356,7 +392,7 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
         return false
     }
 
-    override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
+    override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
         val vec3 = Vector3(screenX.toFloat(), screenY.toFloat(), 0f)
         camera.unproject(vec3)
         val (coordX, coordY) = translateWorldCoordToMapCoord(vec3.x, vec3.y)
@@ -364,52 +400,70 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
 
         when (button) {
             Input.Buttons.LEFT -> {
+                if (!gameOver) {
+                    // clicked on mine map
+                    if (coordX >= 0 && coordY >= 0) {
+                        when (mineMapStatus[index]) {
+                            Status.UNSOLVED -> {
+                                val mine = mineMap[index]
 
-                // clicked on mine map
-                if (coordX >=0 && coordY >= 0) {
-                    when (mineMapStatus[index]) {
-                        Status.UNSOLVED -> {
-                            val mine = mineMap[index]
-
-                            if (mine == Mine.MINE) {
-                                // explode...
-                                println("explode!!!")
-                                mineMapStatus[index] = Status.CLEARED
-                            }
-                            else {
-                                if (mine == Mine.EMPTY) {
-                                    checkSurroundingBlocks(coordX, coordY)
-                                }
-                                else {
+                                if (mine == Mine.MINE) {
+                                    // explode...
+                                    // TODO make explosion
+                                    println("explode!!!")
                                     mineMapStatus[index] = Status.CLEARED
+                                    gameOver = true
+                                } else {
+                                    if (mine == Mine.EMPTY) {
+                                        checkSurroundingBlocks(coordX, coordY)
+                                    } else {
+                                        mineMapStatus[index] = Status.CLEARED
+                                    }
+
+                                    unsolved = mineMapStatus
+                                            .filter { e -> e == Status.UNSOLVED || e == Status.TAGGED_QUESTION }
+                                            .count()
+
+                                    checkMineCleared()
                                 }
+                            }
+                            else -> {
                             }
                         }
-                        else -> {}
                     }
                 }
             }
 
             Input.Buttons.RIGHT -> {
 
-                // clicked on mine map
-                if (coordX >=0 && coordY >= 0) {
+                if (!gameOver) {
+                    // clicked on mine map
+                    if (coordX >= 0 && coordY >= 0) {
 
-                    when (mineMapStatus[index]) {
-                        Status.UNSOLVED -> {
-                            mineMapStatus[index] = Status.TAGGED_FLAG
+                        when (mineMapStatus[index]) {
+                            Status.UNSOLVED -> {
+                                if (flags > 0) {
+                                    mineMapStatus[index] = Status.TAGGED_FLAG
+                                    flags--
+                                    checkMineCleared()
+                                }
+                            }
+
+                            Status.TAGGED_FLAG -> {
+                                mineMapStatus[index] = Status.TAGGED_QUESTION
+                                flags++
+                                questions++
+                            }
+
+                            Status.TAGGED_QUESTION -> {
+                                mineMapStatus[index] = Status.UNSOLVED
+                                questions--
+                            }
+                            else -> {
+                            }
                         }
 
-                        Status.TAGGED_FLAG -> {
-                            mineMapStatus[index] = Status.TAGGED_QUESTION
-                        }
-
-                        Status.TAGGED_QUESTION -> {
-                            mineMapStatus[index] = Status.UNSOLVED
-                        }
-                        else -> {}
                     }
-
                 }
             }
         }

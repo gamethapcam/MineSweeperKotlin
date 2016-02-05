@@ -118,6 +118,7 @@ class Gui(val playScreen: PlayScreen): Disposable {
         restartButton.addListener(object: ClickListener() {
             override fun clicked(event: InputEvent, x: Float, y: Float) {
                 playScreen.restart()
+                settingsWindow.isVisible = false
             }
         })
 
