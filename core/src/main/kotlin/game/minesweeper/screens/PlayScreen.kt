@@ -370,10 +370,14 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
     }
 
     private fun checkMineCleared() {
+        unsolved = mineMapStatus
+                .filter { e -> e == Status.UNSOLVED || e == Status.TAGGED_QUESTION }
+                .count()
 
-        if (questions == 0 && (flags == 0 || (unsolved <= 1))) {
+        if ((questions == 0 && (flags == 0 || (unsolved <= 1))) || (unsolved <= flags)) {
             mineCleared = true
         }
+
         gameOver = mineCleared
     }
 
@@ -425,10 +429,6 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
                                     } else {
                                         mineMapStatus[index] = Status.CLEARED
                                     }
-
-                                    unsolved = mineMapStatus
-                                            .filter { e -> e == Status.UNSOLVED || e == Status.TAGGED_QUESTION }
-                                            .count()
 
                                     checkMineCleared()
                                 }
