@@ -12,6 +12,7 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.scenes.scene2d.Stage
+import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.utils.viewport.FitViewport
 import game.minesweeper.ui.Gui
@@ -50,6 +51,8 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
     private lateinit var viewport: FitViewport
     private lateinit var camera: OrthographicCamera
     private lateinit var stage: Stage
+    private lateinit var flagImage: Image
+    private lateinit var flagLabel: Label
     private lateinit var mineClearedLabel: Label
 
     private val assetManager = AssetManager()
@@ -101,16 +104,24 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
 
         camera.translate(Vector2(WIDTH / 2f, HEIGHT / 2f))
 
+        val textureAtlas = assetManager.get("img/actors.pack", TextureAtlas::class.java)
         val ubuntu32Font = assetManager.get("fonts/Ubuntu32.fnt", BitmapFont::class.java)
         val labelStyle = Label.LabelStyle(ubuntu32Font, Color.WHITE)
         mineClearedLabel = Label("Cleared!", labelStyle)
         mineClearedLabel.setPosition((Gdx.graphics.width - mineClearedLabel.width) / 2f, (Gdx.graphics.height - mineClearedLabel.height) / 2f)
         mineClearedLabel.isVisible = mineCleared
+
+        flagImage = Image(textureAtlas.findRegion("Flag"))
+        flagLabel = Label("$flags", labelStyle)
+        flagImage.setPosition(20f, Gdx.graphics.height - 100f)
+        flagLabel.setPosition(70f, Gdx.graphics.height - 90f)
+
         stage = Stage()
         stage.addActor(mineClearedLabel)
+        stage.addActor(flagImage)
+        stage.addActor(flagLabel)
 
 
-        val textureAtlas = assetManager.get("img/actors.pack", TextureAtlas::class.java)
         spriteBlock = Sprite(textureAtlas.findRegion("Block"))
         spriteBlock.setBounds(0f, 0f, BLOCK_SIZE, BLOCK_SIZE)
 
@@ -272,7 +283,7 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
                 spriteBlock.setPosition(x, y)
                 spriteBlock.draw(batch)
 
-                if (gameOver && mineMap[index] == Mine.MINE) {
+                if (gameOver && !mineCleared && mineMap[index] == Mine.MINE) {
                     spriteMine.setPosition(x, y)
                     spriteMine.draw(batch)
                 }
@@ -287,7 +298,7 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
                 spriteBlock.setPosition(x, y)
                 spriteBlock.draw(batch)
 
-                if (gameOver && mineMap[index] == Mine.MINE) {
+                if (gameOver && !mineCleared && mineMap[index] == Mine.MINE) {
                     spriteMine.setPosition(x, y)
                     spriteMine.draw(batch)
                 }
@@ -354,6 +365,7 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
         }
         batch.end()
 
+        flagLabel.setText("$flags")
         mineClearedLabel.isVisible = mineCleared
         stage.draw()
 
@@ -369,12 +381,37 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
         stage.dispose()
     }
 
+    private fun checkAllFlaggedCorrectly(): Boolean {
+        if (flags > 0) {
+            return false
+        }
+
+        var allCorrect = true
+
+        for ((index, status) in mineMapStatus.withIndex()) {
+            if (status == Status.TAGGED_FLAG && mineMap[index] != Mine.MINE) {
+                allCorrect = false
+                break
+            }
+        }
+
+        return allCorrect
+    }
+
     private fun checkMineCleared() {
         unsolved = mineMapStatus
                 .filter { e -> e == Status.UNSOLVED || e == Status.TAGGED_QUESTION }
                 .count()
 
-        if ((questions == 0 && (flags == 0 || (unsolved <= 1))) || (unsolved <= flags)) {
+        var allCleared = true
+        for ((index, status) in mineMapStatus.withIndex()) {
+            if (status == Status.UNSOLVED && mineMap[index] != Mine.MINE) {
+                allCleared = false
+                break
+            }
+        }
+
+        if (allCleared || (questions == 0 && checkAllFlaggedCorrectly())) {
             mineCleared = true
         }
 
