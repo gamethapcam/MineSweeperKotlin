@@ -271,6 +271,11 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
             if (value == Status.UNSOLVED) {
                 spriteBlock.setPosition(x, y)
                 spriteBlock.draw(batch)
+
+                if (gameOver && mineMap[index] == Mine.MINE) {
+                    spriteMine.setPosition(x, y)
+                    spriteMine.draw(batch)
+                }
             }
             else if (value == Status.TAGGED_FLAG) {
                 spriteBlock.setPosition(x, y)
@@ -281,6 +286,11 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
             else if (value == Status.TAGGED_QUESTION) {
                 spriteBlock.setPosition(x, y)
                 spriteBlock.draw(batch)
+
+                if (gameOver && mineMap[index] == Mine.MINE) {
+                    spriteMine.setPosition(x, y)
+                    spriteMine.draw(batch)
+                }
                 spriteQuestion.setPosition(x, y)
                 spriteQuestion.draw(batch)
             }
@@ -408,10 +418,6 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
                                 val mine = mineMap[index]
 
                                 if (mine == Mine.MINE) {
-                                    // explode...
-                                    // TODO make explosion
-                                    println("explode!!!")
-                                    mineMapStatus[index] = Status.CLEARED
                                     gameOver = true
                                 } else {
                                     if (mine == Mine.EMPTY) {
