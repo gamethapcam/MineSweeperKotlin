@@ -9,10 +9,8 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import com.badlogic.gdx.utils.Disposable
 import com.kotcrab.vis.ui.VisUI
-import com.kotcrab.vis.ui.widget.VisLabel
-import com.kotcrab.vis.ui.widget.VisSlider
-import com.kotcrab.vis.ui.widget.VisTable
-import com.kotcrab.vis.ui.widget.VisTextButton
+import com.kotcrab.vis.ui.util.Validators
+import com.kotcrab.vis.ui.widget.*
 import game.minesweeper.screens.PlayScreen
 
 class Gui(val playScreen: PlayScreen): Disposable {
@@ -31,6 +29,9 @@ class Gui(val playScreen: PlayScreen): Disposable {
 
     val totalMineNumberSlider: VisSlider
     val totalMineNumberLabel: VisLabel
+
+    val countDownCheckBox: VisCheckBox
+    val timerValidatableTextField: VisValidatableTextField
 
 
     init {
@@ -63,15 +64,27 @@ class Gui(val playScreen: PlayScreen): Disposable {
             }
         })
 
-        totalMineNumberSlider.setValue(playScreen.totalMineNumber.toFloat())
+        totalMineNumberSlider.value = playScreen.totalMineNumber.toFloat()
         totalMineNumberSlider.addListener(object: ChangeListener() {
             override fun changed(event: ChangeEvent, actor: Actor?) {
                 totalMineNumberLabel.setText("${totalMineNumberSlider.value.toInt()}")
             }
         })
 
+        timerValidatableTextField = VisValidatableTextField("${playScreen.timerCountDown}")
+        countDownCheckBox = VisCheckBox("Count down")
+        countDownCheckBox.addListener(object: ChangeListener() {
+            override fun changed(event: ChangeEvent, actor: Actor) {
+                timerValidatableTextField.isDisabled = !countDownCheckBox.isChecked
+            }
+        })
+        timerValidatableTextField.isDisabled = !countDownCheckBox.isChecked
+        timerValidatableTextField.addValidator(Validators.FloatValidator())
+        timerValidatableTextField.isRestoreLastValid = true
+        val timerLabel = VisLabel("seconds")
+
         val windowWidth = 480f
-        val windowHeight = 240f
+        val windowHeight = 280f
         settingsWindow = Window("Settings", VisUI.getSkin())
         settingsWindow.isVisible = false
         settingsWindow.setSize(windowWidth, windowHeight)
@@ -84,6 +97,9 @@ class Gui(val playScreen: PlayScreen): Disposable {
                 playScreen.mapWidth = mapWidthSlider.value.toInt()
                 playScreen.mapHeight = mapHeightSlider.value.toInt()
                 playScreen.totalMineNumber = totalMineNumberSlider.value.toInt()
+
+                playScreen.timer = countDownCheckBox.isChecked
+                playScreen.timerCountDown = if (timerValidatableTextField.isInputValid) timerValidatableTextField.text.toFloat() else playScreen.timerCountDown
                 playScreen.restart()
                 settingsWindow.isVisible = false
             }
@@ -110,8 +126,12 @@ class Gui(val playScreen: PlayScreen): Disposable {
         settingsTable.add(totalMineNumberSlider).pad(6f)
         settingsTable.add(totalMineNumberLabel)
         settingsTable.row()
-        settingsTable.add(applyButton).padRight(6f)
-        settingsTable.add(cancelButton)
+        settingsTable.add(countDownCheckBox).pad(6f)
+        settingsTable.add(timerValidatableTextField)
+        settingsTable.add(timerLabel)
+        settingsTable.row()
+        settingsTable.add(applyButton).padTop(16f).padRight(10f)
+        settingsTable.add(cancelButton).padTop(16f)
         settingsWindow.add(settingsTable)
 
         restartButton = VisTextButton("Restart")

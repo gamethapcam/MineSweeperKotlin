@@ -53,7 +53,10 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
     private lateinit var stage: Stage
     private lateinit var flagImage: Image
     private lateinit var flagLabel: Label
+    private lateinit var timerImage: Image
+    private lateinit var timerLabel: Label
     private lateinit var mineClearedLabel: Label
+    private lateinit var gameOverLabel: Label
 
     private val assetManager = AssetManager()
 
@@ -73,6 +76,10 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
     var flags = totalMineNumber
     var questions = 0
     var unsolved = mapSize
+
+    var timer = false
+    var timerCountDown = 999f
+    var timerCounter = timerCountDown
 
     private lateinit var mineMap: Array<Mine>
     private lateinit var mineMapStatus: Array<Status>
@@ -111,16 +118,29 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
         mineClearedLabel.setPosition((Gdx.graphics.width - mineClearedLabel.width) / 2f, (Gdx.graphics.height - mineClearedLabel.height) / 2f)
         mineClearedLabel.isVisible = mineCleared
 
+        gameOverLabel = Label("Game Over", labelStyle)
+        gameOverLabel.setPosition((Gdx.graphics.width - gameOverLabel.width) / 2f, (Gdx.graphics.height - gameOverLabel.height) / 2f)
+        gameOverLabel.isVisible = gameOver
+
         flagImage = Image(textureAtlas.findRegion("Flag"))
         flagLabel = Label("$flags", labelStyle)
-        flagImage.setPosition(20f, Gdx.graphics.height - 100f)
-        flagLabel.setPosition(70f, Gdx.graphics.height - 90f)
+        flagImage.setPosition(20f, Gdx.graphics.height - 95f)
+        flagLabel.setPosition(80f, Gdx.graphics.height - 80f)
+
+        timerImage = Image(textureAtlas.findRegion("Timer"))
+        timerLabel = Label("$timerCounter", labelStyle)
+        timerImage.setPosition(160f, Gdx.graphics.height - 90f)
+        timerLabel.setPosition(240f, Gdx.graphics.height - 80f)
+        timerImage.isVisible = timer
+        timerLabel.isVisible = timer
 
         stage = Stage()
         stage.addActor(mineClearedLabel)
+        stage.addActor(gameOverLabel)
         stage.addActor(flagImage)
         stage.addActor(flagLabel)
-
+        stage.addActor(timerImage)
+        stage.addActor(timerLabel)
 
         spriteBlock = Sprite(textureAtlas.findRegion("Block"))
         spriteBlock.setBounds(0f, 0f, BLOCK_SIZE, BLOCK_SIZE)
@@ -249,6 +269,8 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
         unsolved = mapSize
         gameOver = false
         mineCleared = false
+
+        timerCounter = Math.max(0f, timerCountDown)
     }
 
     override fun pause() {
@@ -262,6 +284,14 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
     }
 
     fun update(delta: Float) {
+        if (!gameOver && timer) {
+            timerCounter -= delta
+        }
+
+        if (timerCounter < 0) {
+            gameOver = true
+        }
+
         gui.update(delta)
     }
 
@@ -366,7 +396,13 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
         batch.end()
 
         flagLabel.setText("$flags")
+        timerImage.isVisible = timer
+        timerLabel.isVisible = timer
+        if (timer) {
+            timerLabel.setText("%.1f".format(timerCounter))
+        }
         mineClearedLabel.isVisible = mineCleared
+        gameOverLabel.isVisible = gameOver && !mineCleared
         stage.draw()
 
         gui.draw()
@@ -405,7 +441,9 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
 
         var allCleared = true
         for ((index, status) in mineMapStatus.withIndex()) {
-            if (status == Status.UNSOLVED && mineMap[index] != Mine.MINE) {
+
+            if ((mineMap[index] != Mine.MINE) &&
+                    (status == Status.TAGGED_FLAG || status == Status.TAGGED_QUESTION || status == Status.UNSOLVED)) {
                 allCleared = false
                 break
             }
@@ -501,6 +539,7 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
                             Status.TAGGED_QUESTION -> {
                                 mineMapStatus[index] = Status.UNSOLVED
                                 questions--
+                                checkMineCleared()
                             }
                             else -> {
                             }
