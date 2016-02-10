@@ -3,100 +3,100 @@ actors.png
 format: RGBA8888
 filter: Linear,Linear
 repeat: none
-Num5
+Timer
   rotate: false
   xy: 1, 1
+  size: 128, 64
+  orig: 128, 64
+  offset: 0, 0
+  index: -1
+Num5
+  rotate: false
+  xy: 131, 1
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 Num2
   rotate: false
-  xy: 67, 1
-  size: 64, 64
-  orig: 64, 64
-  offset: 0, 0
-  index: -1
-Timer
-  rotate: false
-  xy: 133, 1
+  xy: 197, 1
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 Mine
   rotate: false
-  xy: 199, 1
+  xy: 263, 1
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 Num6
   rotate: false
-  xy: 265, 1
+  xy: 329, 1
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 ClearBlock
   rotate: false
-  xy: 331, 1
+  xy: 395, 1
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 Question
   rotate: false
-  xy: 397, 1
+  xy: 461, 1
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 Num8
   rotate: false
-  xy: 463, 1
+  xy: 527, 1
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 Num3
   rotate: false
-  xy: 529, 1
+  xy: 593, 1
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 Num7
   rotate: false
-  xy: 595, 1
+  xy: 659, 1
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 Num4
   rotate: false
-  xy: 661, 1
+  xy: 725, 1
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 Num1
   rotate: false
-  xy: 727, 1
+  xy: 791, 1
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 Block
   rotate: false
-  xy: 793, 1
+  xy: 857, 1
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 Flag
   rotate: false
-  xy: 859, 1
+  xy: 923, 1
   size: 64, 64
   orig: 64, 64
   offset: 0, 0

@@ -5,13 +5,11 @@ import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
-import com.badlogic.gdx.graphics.g2d.BitmapFont
-import com.badlogic.gdx.graphics.g2d.Sprite
-import com.badlogic.gdx.graphics.g2d.SpriteBatch
-import com.badlogic.gdx.graphics.g2d.TextureAtlas
+import com.badlogic.gdx.graphics.g2d.*
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.scenes.scene2d.Stage
+import com.badlogic.gdx.scenes.scene2d.actions.Actions
 import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.utils.viewport.FitViewport
@@ -54,6 +52,7 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
     private lateinit var flagImage: Image
     private lateinit var flagLabel: Label
     private lateinit var timerImage: Image
+    private lateinit var timerSecondHandImage: Image
     private lateinit var timerLabel: Label
     private lateinit var mineClearedLabel: Label
     private lateinit var gameOverLabel: Label
@@ -127,12 +126,19 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
         flagImage.setPosition(20f, Gdx.graphics.height - 95f)
         flagLabel.setPosition(80f, Gdx.graphics.height - 80f)
 
-        timerImage = Image(textureAtlas.findRegion("Timer"))
+        timerImage = Image(TextureRegion(textureAtlas.findRegion("Timer"), 0, 0, 64, 64))
         timerLabel = Label("$timerCounter", labelStyle)
         timerImage.setPosition(160f, Gdx.graphics.height - 90f)
         timerLabel.setPosition(240f, Gdx.graphics.height - 80f)
+
+        timerSecondHandImage = Image(TextureRegion(textureAtlas.findRegion("Timer"), 64, 0, 64, 64))
+        timerSecondHandImage.setPosition(160f, Gdx.graphics.height - 90f)
+        timerSecondHandImage.setOrigin(32f, 27f)
+
+        timerSecondHandImage.isVisible = timer
         timerImage.isVisible = timer
         timerLabel.isVisible = timer
+
 
         stage = Stage()
         stage.addActor(mineClearedLabel)
@@ -140,6 +146,7 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
         stage.addActor(flagImage)
         stage.addActor(flagLabel)
         stage.addActor(timerImage)
+        stage.addActor(timerSecondHandImage)
         stage.addActor(timerLabel)
 
         spriteBlock = Sprite(textureAtlas.findRegion("Block"))
@@ -271,6 +278,13 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
         mineCleared = false
 
         timerCounter = Math.max(0f, timerCountDown)
+
+        if (timer) {
+            timerSecondHandImage.clearActions()
+            timerSecondHandImage.rotateBy(-timerCountDown * 6f)
+            timerSecondHandImage.addAction(Actions.rotateBy(timerCountDown * 6f, timerCountDown))
+        }
+
     }
 
     override fun pause() {
@@ -396,6 +410,7 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
         batch.end()
 
         flagLabel.setText("$flags")
+        timerSecondHandImage.isVisible = timer
         timerImage.isVisible = timer
         timerLabel.isVisible = timer
         if (timer) {
@@ -403,6 +418,7 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
         }
         mineClearedLabel.isVisible = mineCleared
         gameOverLabel.isVisible = gameOver && !mineCleared
+        stage.act(delta)
         stage.draw()
 
         gui.draw()
