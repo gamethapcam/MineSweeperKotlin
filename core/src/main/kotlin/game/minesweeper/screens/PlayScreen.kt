@@ -281,6 +281,7 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
 
         if (timer) {
             timerSecondHandImage.clearActions()
+            timerSecondHandImage.rotation = 0f
             timerSecondHandImage.rotateBy(-timerCountDown * 6f)
             timerSecondHandImage.addAction(Actions.rotateBy(timerCountDown * 6f, timerCountDown))
         }
