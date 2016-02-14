@@ -5,98 +5,105 @@ filter: Linear,Linear
 repeat: none
 Timer
   rotate: false
-  xy: 1, 1
+  xy: 1, 133
   size: 128, 64
   orig: 128, 64
   offset: 0, 0
   index: -1
 Num5
   rotate: false
-  xy: 131, 1
+  xy: 1, 67
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 Num2
   rotate: false
-  xy: 197, 1
+  xy: 131, 133
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 Mine
   rotate: false
-  xy: 263, 1
+  xy: 1, 1
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 Num6
   rotate: false
-  xy: 329, 1
+  xy: 67, 67
+  size: 64, 64
+  orig: 64, 64
+  offset: 0, 0
+  index: -1
+Locator
+  rotate: false
+  xy: 197, 133
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 ClearBlock
   rotate: false
-  xy: 395, 1
+  xy: 67, 1
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 Question
   rotate: false
-  xy: 461, 1
+  xy: 133, 67
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 Num8
   rotate: false
-  xy: 527, 1
+  xy: 263, 133
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 Num3
   rotate: false
-  xy: 593, 1
+  xy: 133, 1
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 Num7
   rotate: false
-  xy: 659, 1
+  xy: 199, 67
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 Num4
   rotate: false
-  xy: 725, 1
+  xy: 329, 133
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 Num1
   rotate: false
-  xy: 791, 1
+  xy: 199, 1
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 Block
   rotate: false
-  xy: 857, 1
+  xy: 265, 67
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 Flag
   rotate: false
-  xy: 923, 1
+  xy: 395, 133
   size: 64, 64
   orig: 64, 64
   offset: 0, 0

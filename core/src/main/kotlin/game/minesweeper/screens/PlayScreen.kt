@@ -98,7 +98,12 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
     private lateinit var spriteNum8: Sprite
     private lateinit var spriteFlag: Sprite
 
+    private lateinit var spriteLocator: Sprite
+    private var drawLocator = false
+
     private lateinit var gui: Gui
+
+    val tmpVector3 = Vector3()
 
     override fun show() {
         assetManager.load("fonts/Ubuntu32.fnt", BitmapFont::class.java)
@@ -180,6 +185,9 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
         spriteNum7.setBounds(0f, 0f, BLOCK_SIZE, BLOCK_SIZE)
         spriteNum8.setBounds(0f, 0f, BLOCK_SIZE, BLOCK_SIZE)
         spriteFlag.setBounds(0f, 0f, BLOCK_SIZE, BLOCK_SIZE)
+
+        spriteLocator = Sprite(textureAtlas.findRegion("Locator"))
+        spriteLocator.setBounds(0f, 0f, BLOCK_SIZE, BLOCK_SIZE)
 
         gui = Gui(this)
 
@@ -403,10 +411,12 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
                     else -> {
 
                     }
-
                 }
             }
+        }
 
+        if (drawLocator) {
+            spriteLocator.draw(batch)
         }
         batch.end()
 
@@ -480,8 +490,8 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
         val x = (posX - left) / BLOCK_SIZE
         val y = mapHeight + (top - posY) / BLOCK_SIZE
 
-        val coordX = if (x >= 0 && x <= mapWidth) x.toInt() else -1
-        val coordY = if (y >= 0 && y <= mapHeight) y.toInt() else -1
+        val coordX = if (x >= 0 && x < mapWidth) x.toInt() else -1
+        val coordY = if (y >= 0 && y < mapHeight) y.toInt() else -1
         return MapCoord(coordX, coordY)
     }
 
@@ -491,6 +501,22 @@ class PlayScreen(val batch: SpriteBatch): Screen, InputProcessor {
     }
 
     override fun mouseMoved(screenX: Int, screenY: Int): Boolean {
+        tmpVector3.set(screenX.toFloat(), screenY.toFloat(), 0f)
+        camera.unproject(tmpVector3)
+
+        drawLocator = false
+        val mapCoord = translateWorldCoordToMapCoord(tmpVector3.x, tmpVector3.y)
+        if (mapCoord.x >= 0 && mapCoord.y >= 0) {
+            if (mineMapStatus[mapCoord.y * mapWidth + mapCoord.x] != Status.CLEARED) {
+                drawLocator = true
+
+                val x = WIDTH / 2f - (mapWidth / 2f - mapCoord.x) * BLOCK_SIZE
+                val y = (HEIGHT - 6f) / 2f + (mapHeight / 2f - mapCoord.y - 1) * BLOCK_SIZE
+
+                spriteLocator.setPosition(x, y)
+            }
+        }
+
         return false
     }
 
